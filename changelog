@@ -1,0 +1,23 @@
+commit 7931e6ccda90b67e2c9095e9360b92019065c810 (HEAD -> main, origin/main)
+Author: Jesus Palencia <sinfallas@gmail.com>
+Date:   Sun Jul 27 13:53:22 2025 -0400
+
+    * system.conf
+
+commit a10bd16a2623a26e82dbac562195f693b7470827
+Author: Jesus Palencia <sinfallas@gmail.com>
+Date:   Sun Jul 27 13:44:56 2025 -0400
+
+    * core dumps
+
+commit d875ce982f2c19ad1124e1af842a2e2c632c7ab8
+Author: Jesus Palencia <sinfallas@gmail.com>
+Date:   Sun Jul 27 13:37:12 2025 -0400
+
+    * fail2ban para ssh
+
+commit 2d31076ca097e24ad6bb335d2428928c4cad056d
+Author: Jesus Palencia <sinfallas@gmail.com>
+Date:   Sun Jul 27 13:31:47 2025 -0400
+
+    * primer commit
