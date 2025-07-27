@@ -1,0 +1,186 @@
+# Archivo de configuración del demonio SSH (sshd_config)
+# Este archivo contiene directivas para endurecer la seguridad del servidor OpenSSH.
+# Se recomienda encarecidamente realizar una copia de seguridad del archivo original
+# antes de aplicar cualquier cambio:
+# sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+
+# ---
+# 1. Configuración General y Puertos
+# ---
+
+# Puerto de escucha para SSH. Cambiar el puerto predeterminado (22) reduce
+# el volumen de ataques automatizados de fuerza bruta y escaneos de puertos.
+# Asegúrese de actualizar las reglas del firewall para permitir el tráfico en este nuevo puerto
+# y bloquear el puerto 22.
+Port 2222
+
+# Dirección IP a la que sshd debe enlazar. Por defecto, escucha en todas las interfaces.
+# ListenAddress 0.0.0.0
+# ListenAddress ::
+
+# ---
+# 2. Autenticación y Control de Acceso
+# ---
+
+# Deshabilita el inicio de sesión directo para el usuario 'root'.
+# Esto fuerza a los administradores a iniciar sesión como un usuario normal y luego
+# escalar privilegios usando 'sudo', lo que proporciona una capa adicional de seguridad
+# y un rastro de auditoría.
+PermitRootLogin no
+
+# Deshabilita completamente la autenticación basada en contraseña.
+# Esto es fundamental para la seguridad, ya que las contraseñas son vulnerables a ataques
+# de fuerza bruta y relleno de credenciales. Se requiere el uso exclusivo de claves SSH.
+PasswordAuthentication no
+
+# Habilita explícitamente la autenticación basada en clave pública.
+# Este es el método de autenticación recomendado y más seguro.
+PubkeyAuthentication yes
+
+# Especifica el archivo que contiene las claves públicas autorizadas del usuario.
+# Por defecto, es ~/.ssh/authorized_keys.
+AuthorizedKeysFile.ssh/authorized_keys
+
+# Deshabilita la autenticación basada en host.
+# Esta es una característica antigua y menos segura.
+HostbasedAuthentication no
+
+# Deshabilita la autenticación GSSAPI (Generic Security Service Application Program Interface).
+# A menudo no es necesaria y puede introducir complejidad.
+GSSAPIAuthentication no
+
+# Deshabilita el uso de PAM para la autenticación.
+# Si se requiere 2FA (Autenticación de Dos Factores) basada en PAM (por ejemplo, Google Authenticator),
+# esta línea debe ajustarse o comentarse, y 'UsePAM yes' debe estar habilitado.
+# Para 2FA con clave pública,keyboard-interactive:
+# AuthenticationMethods publickey,keyboard-interactive
+UsePAM yes
+
+# Limita el número máximo de intentos de autenticación permitidos por conexión.
+# Un valor bajo (ej. 3) ayuda a mitigar ataques de fuerza bruta.
+MaxAuthTries 3
+
+# Restringe el acceso SSH a usuarios específicos. Solo los usuarios listados aquí
+# podrán conectarse. Implementa el principio de mínimo privilegio.
+# Reemplace 'tu_usuario' y 'otro_usuario' con los nombres de usuario reales.
+AllowUsers tu_usuario otro_usuario
+
+# Opcional: Restringe el acceso SSH a miembros de grupos específicos.
+# AllowGroups tu_grupo otro_grupo
+
+# Deshabilita el uso de archivos de entorno de usuario (~/.ssh/environment)
+# y opciones 'environment=' en authorized_keys. Esto previene la manipulación
+# del entorno de ejecución por parte de un atacante.
+PermitUserEnvironment no
+
+# ---
+# 3. Seguridad de Sesiones y Canales
+# ---
+
+# Deshabilita el reenvío X11 (reenvío de GUI).
+# A menos que sea estrictamente necesario, deshabilitarlo reduce la superficie de ataque.
+X11Forwarding no
+
+# Deshabilita el reenvío de puertos TCP.
+# Esto es crítico para la seguridad, ya que evita que SSH sea utilizado
+# como un punto de pivote para eludir las reglas del firewall o acceder a recursos internos.
+AllowTcpForwarding no
+
+# Deshabilita el reenvío de dispositivos tun (túneles VPN-like).
+# Restringe aún más las capacidades de red a través de SSH.
+PermitTunnel no
+
+# Deshabilita la ejecución de comandos arbitrarios por parte del cliente.
+# Solo permite el reenvío de puertos y otras operaciones de túnel si están permitidas.
+# ForceCommand internal-sftp # Ejemplo para restringir a SFTP solamente
+
+# Envía un mensaje "keepalive" al cliente si no se recibe ningún dato durante 300 segundos (5 minutos).
+ClientAliveInterval 300
+
+# Desconecta al cliente después de que el primer mensaje "keepalive" no sea respondido.
+# Esto asegura que las sesiones inactivas se terminen rápidamente.
+ClientAliveCountMax 0
+
+# ---
+# 4. Configuración de Cifrado y Algoritmos Criptográficos
+# ---
+
+# Especifica los algoritmos de cifrado simétrico permitidos.
+# Prioriza los modos de cifrado autenticado modernos (ChaCha20-Poly1305, AES-GCM)
+# y los modos CTR robustos. Excluye los modos CBC débiles y algoritmos obsoletos.
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+
+# Especifica los algoritmos de Código de Autenticación de Mensajes (MAC) permitidos.
+# Favorece los HMACs basados en SHA2 y UMACs, especialmente con el sufijo 'etm'
+# (encrypt-then-mac) para una seguridad superior. Deshabilita los MACs basados en MD5 y 96-bit.
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com
+
+# Especifica los algoritmos de intercambio de claves (KexAlgorithms) permitidos.
+# Prioriza Elliptic Curve Diffie-Hellman (ECDH) y Curve25519 por su seguridad
+# y rendimiento. Incluye grupos Diffie-Hellman robustos usando SHA256/SHA512.
+# Evita grupos DH antiguos y SHA1.
+KexAlgorithms curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512
+
+# Especifica los algoritmos de clave de host permitidos.
+# Prioriza algoritmos modernos y seguros como EdDSA (ssh-ed25519) y ECDSA.
+# Incluye variantes 'sk-' para soporte de tokens de hardware FIDO/U2F.
+# Prefiere variantes RSA con SHA2 (rsa-sha2-512, rsa-sha2-256) sobre ssh-rsa.
+HostKeyAlgorithms ssh-ed25519,sk-ssh-ed25519@openssh.com,ecdsa-sha2-nistp521,ecdsa-sha2-nistp384,ecdsa-sha2-nistp256,sk-ecdsa-sha2-nistp256@openssh.com,rsa-sha2-512,rsa-sha2-256
+
+# ---
+# 5. Otras Configuraciones de Seguridad y Registro
+# ---
+
+# Deshabilita la búsqueda inversa de DNS para las conexiones entrantes.
+# Esto puede mejorar el rendimiento y evitar dependencias de DNS,
+# aunque puede afectar la legibilidad de los logs si se confía en nombres de host.
+UseDNS no
+
+# Deshabilita el reenvío del agente SSH.
+# Si no es necesario, deshabilitarlo reduce el riesgo de secuestro del agente.
+AllowAgentForwarding no
+
+# Nivel de registro de SSH. INFO es el valor predeterminado y suficiente para la mayoría.
+# DEBUG puede ser útil para la resolución de problemas, pero genera muchos datos.
+LogLevel INFO
+
+# Deshabilita la autenticación de desafío-respuesta (por ejemplo, S/Key o PAM si no se usa 2FA).
+# Si se usa 'AuthenticationMethods publickey,keyboard-interactive' para 2FA, esta línea
+# podría necesitar ser 'yes' o comentada.
+ChallengeResponseAuthentication no
+
+# Deshabilita la autenticación de contraseña vacía.
+PermitEmptyPasswords no
+
+# Deshabilita la impresión del último mensaje de inicio de sesión.
+PrintLastLog no
+
+# Deshabilita la impresión del mensaje del día.
+PrintMotd no
+
+# Permite la compresión. Deshabilitar puede ser una opción para reducir la superficie de ataque
+# si no se necesita la compresión, pero el impacto en la seguridad es mínimo.
+# Compression no
+
+# Deshabilita la autenticación de claves de host de confianza.
+# Esto evita que SSH confíe implícitamente en claves de host conocidas.
+StrictHostKeyChecking no # (Generalmente se configura en el cliente, no en el servidor)
+
+# ---
+# 6. Subsistemas
+# ---
+
+# Configura el subsistema SFTP (Secure File Transfer Protocol).
+# Internal-sftp es una implementación interna más segura que no requiere un binario externo.
+Subsystem sftp internal-sftp
+
+# ---
+# 7. Consideraciones Adicionales
+# ---
+
+# Para entornos de alta seguridad, considere las siguientes directivas:
+# MaxStartups 10:30:60 # Permite 10 conexiones simultáneas sin autenticar,
+#                       # luego aumenta la probabilidad de caída al 30% hasta 60 conexiones.
+# MaxSessions 10 # Limita el número máximo de sesiones abiertas por conexión de red.
+
+
